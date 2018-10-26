@@ -7,7 +7,7 @@ authRouter.use((req, res, next) => {
 })
 
 authRouter.get('/', (req, res) => {
-    res.send('Hello world')
+    res.send('Welcome to API of JudasFate')
 })
 
 module.exports = authRouter

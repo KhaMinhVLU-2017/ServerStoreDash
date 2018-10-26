@@ -1,13 +1,21 @@
-const express = require('express')
-const app = express()
-const port = 4444
+var mongoose = require('mongoose')
 const authRouter = require('./authRouter')
 const router = require('./router')
+const config = require('./config')
+const port = 4444
 
-app.use(express.static('public')) // follow path default was Public's folder
+config.app.use(config.express.static('public')) // follow path default was Public's folder
 
-app.use('/',router) //Not authen allow visit anyone 
+//Connect DB
+mongoose.connect(config.urlMongoDb, { useNewUrlParser: true })
+var db = mongoose.connection
+db.on('error', console.error.bind(console, 'connection error:'))
+db.once('open', function () {
+    console.log('Connect Mongodb Complete')
+})
 
-app.use('/api',authRouter) //Authen middleware allow user handler
+config.app.use('/', router) //Not authen allow visit anyone 
 
-app.listen(port, () => console.log(`Server Listening to port ${port}`))
+config.app.use('/api', authRouter) //Authen middleware allow user handler
+
+config.app.listen(process.env.PORT || port, () => console.log(`Server Listening to port ${port}`))
