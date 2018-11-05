@@ -14,7 +14,7 @@ db.once('open', function () {
   console.log('Connect Mongodb Complete')
 })
 
-config.app.use('/', router) // Not authen allow visit anyone 
+config.app.use('/', router) // Not authen allow visit anyone
 
 config.app.use('/api', authRouter) // Authen middleware allow user handler
 

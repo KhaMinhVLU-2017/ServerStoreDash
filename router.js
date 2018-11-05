@@ -8,11 +8,6 @@ var NonControl = require('./api/controllers/nonController')
 router.get('/', (req, res) => {
   res.send('Welcome to Server')
 })
-router.get('/user:id', (req, res) => {
-  let param = req.params.id
-  let message = NonControl.account(454)
-  res.send(message)
-})
 /**
  * Get invoice at day in current Month
  */
@@ -34,6 +29,15 @@ router.get('/invoicecr', (req, res) => {
     res.json({ 'InVoiceMonth': fillmonth })
   }
   doingGetinvoice()
+})
+/**
+ * Get information User
+ */
+router.get('/user:id', (req, res) => {
+  let id = req.params.id
+  NonControl.account(id).then(account => {
+    res.json(account)
+  })
 })
 
 module.exports = router
