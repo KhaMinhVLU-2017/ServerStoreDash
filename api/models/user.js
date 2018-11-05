@@ -1,6 +1,5 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema
-var model = mongoose.model
 
 var user =  new Schema({
     username: String,
