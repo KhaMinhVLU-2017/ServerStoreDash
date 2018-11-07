@@ -6,6 +6,12 @@ const port = 4444
 
 config.app.use(config.express.static('public')) // follow path default was Public's folder
 
+config.app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  next()
+})
+
 // Connect DB
 mongoose.connect(config.urlMongoDb, { useNewUrlParser: true })
 var db = mongoose.connection

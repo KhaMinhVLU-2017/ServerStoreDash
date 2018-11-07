@@ -16,7 +16,7 @@ router.get('/invoicecr', (req, res) => {
   let yearCr = date.getFullYear()
   let monthCr = date.getMonth() + 1
   // let dayCr = date.getDate()
-  async function doingGetinvoice () {
+  async function doingGetinvoice() {
     let listInvoice = await Bills.find({})
     let fillmonth = listInvoice.map((item, index) => {
       let InYear = item.date.getFullYear()
@@ -37,6 +37,8 @@ router.get('/user:id', (req, res) => {
   let id = req.params.id
   NonControl.account(id).then(account => {
     res.json(account)
+  }).catch(err => {
+    res.json(err)
   })
 })
 

@@ -5,6 +5,7 @@ var payment = new Schema({
   interestRate: Number,
   timeBegin: Date,
   duration: Number,
+  name: String,
   store: { type: Schema.Types.ObjectId, ref: 'Stores' }
 })
 
