@@ -3,7 +3,7 @@ var Schema = mongoose.Schema
 var payment = new Schema({
   cost: Number,
   interestRate: Number,
-  timeBegin: Date,
+  beginTime: String,
   duration: Number,
   name: String,
   store: { type: Schema.Types.ObjectId, ref: 'Stores' }
