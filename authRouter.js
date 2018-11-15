@@ -108,5 +108,14 @@ authRouter.post('/AccountCr', (req, res) => {
     })
   })
 })
+/**
+ * Get user from Groups
+ */
 
+ authRouter.get('/UsersGroup:id', (req, res) => {
+   let id_Groups = req.params.id
+   console.log(id_Groups)
+
+ })
+ 
 module.exports = authRouter
