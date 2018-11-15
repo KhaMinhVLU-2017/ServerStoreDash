@@ -9,6 +9,9 @@ const authController = require('./api/controllers/authController')
 const bodyParser = require('body-parser')
 authRouter.use(bodyParser.json()) // support json encoded bodies
 authRouter.use(bodyParser.urlencoded({ extended: true })) // support encoded bodies
+// Decode
+const bcrypt = require('bcrypt')
+const saltRounds = 10
 
 authRouter.use((req, res, next) => {
   console.log('Request to Middle API at ' + Date.now())
@@ -80,7 +83,30 @@ authRouter.get('/payments', (req, res) => {
  */
 
 authRouter.post('/AccountCr', (req, res) => {
-  
+  let {username, password, pwconfirm, email} = req.body
+  let groups = req.body.id_group
+  let role = req.body.id_roles
+  if (password !== pwconfirm) {
+    res.json({
+      status: 500,
+      message: 'Password with Pwconfirm not match'
+    })
+  }
+  bcrypt.hash(password,saltRounds)
+  .then(hash => {
+    let user = new Users({username, password: hash, email, groups, role})
+    console.log(user)
+    user.save(err =>{
+      if(err) res.json({status: 500, message: err})
+      res.json({status:200, message: 'Create user complete'})
+    })
+  })
+  .catch(err => {
+    res.json({
+      status:404,
+      message: err
+    })
+  })
 })
 
 module.exports = authRouter
