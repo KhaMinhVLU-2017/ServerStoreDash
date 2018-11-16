@@ -112,10 +112,16 @@ authRouter.post('/AccountCr', (req, res) => {
  * Get user from Groups
  */
 
- authRouter.get('/UsersGroup:id', (req, res) => {
+ authRouter.get('/GroupUsers:id', (req, res) => {
    let id_Groups = req.params.id
-   console.log(id_Groups)
-
+   async function doing (id_Groups) {
+     let listdata = await authController.getUserGroups(id_Groups)
+     res.json({
+       status:200,
+       listdata
+     })
+   }
+   doing(id_Groups)
  })
  
 module.exports = authRouter

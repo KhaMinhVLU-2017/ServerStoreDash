@@ -14,6 +14,7 @@ config.app.use((req, res, next) => {
 
 // Connect DB
 mongoose.connect(config.urlMongoDb, { useNewUrlParser: true })
+mongoose.set('toObject', { transform: true, flattenDecimals: true })
 var db = mongoose.connection
 db.on('error', console.error.bind(console, 'connection error:'))
 db.once('open', function () {
