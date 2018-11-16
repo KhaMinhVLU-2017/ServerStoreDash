@@ -4,6 +4,9 @@ const authRouter = express.Router()
 const Bills = require('./api/models/bill')
 const Payments = require('./api/models/payment')
 const Users = require('./api/models/user')
+const InfoUsers = require('./api/models/infoUser')
+const Roles = require('./api/models/role')
+const Groups = require('./api/models/group')
 // var NonControl = require('./api/controllers/nonController')
 const authController = require('./api/controllers/authController')
 const bodyParser = require('body-parser')
@@ -64,7 +67,10 @@ authRouter.get('/invoicecr', (req, res) => {
 authRouter.get('/user:id', (req, res) => {
   let id = req.params.id
   authController.account(id).then(account => {
-    res.json(account)
+    res.json({
+      status: 200,
+      account
+    })
   }).catch(err => {
     res.json(err)
   })
@@ -74,14 +80,14 @@ authRouter.get('/user:id', (req, res) => {
  */
 authRouter.delete('/user', (req, res) => {
   console.log(req.body)
-  let {_id} = req.body
-  Users.findByIdAndDelete({_id}, (err, data) => {
-    if(err) res.json({
+  let { _id } = req.body
+  Users.findByIdAndDelete({ _id }, (err, data) => {
+    if (err) res.json({
       status: 500,
       message: err
     })
     res.json({
-      status:200,
+      status: 200,
       message: 'Remove complete user'
     })
   })
@@ -100,7 +106,7 @@ authRouter.get('/payments', (req, res) => {
  */
 
 authRouter.post('/AccountCr', (req, res) => {
-  let {username, password, pwconfirm, email} = req.body
+  let { username, password, pwconfirm, email } = req.body
   let groups = req.body.id_group
   let role = req.body.id_roles
   if (password !== pwconfirm) {
@@ -109,36 +115,52 @@ authRouter.post('/AccountCr', (req, res) => {
       message: 'Password with Pwconfirm not match'
     })
   }
-  bcrypt.hash(password,saltRounds)
-  .then(hash => {
-    let user = new Users({username, password: hash, email, groups, role})
-    console.log(user)
-    user.save(err =>{
-      if(err) res.json({status: 500, message: err})
-      res.json({status:200, message: 'Create user complete'})
+  bcrypt.hash(password, saltRounds)
+    .then(hash => {
+      let user = new Users({ username, password: hash, email, groups, role })
+      console.log(user)
+      user.save(err => {
+        if (err) res.json({ status: 500, message: err })
+        res.json({ status: 200, message: 'Create user complete' })
+      })
     })
-  })
-  .catch(err => {
-    res.json({
-      status:404,
-      message: err
+    .catch(err => {
+      res.json({
+        status: 404,
+        message: err
+      })
     })
-  })
 })
 /**
  * Get user from Groups
  */
 
- authRouter.get('/GroupUsers:id', (req, res) => {
-   let id_Groups = req.params.id
-   async function doing (id_Groups) {
-     let listdata = await authController.getUserGroups(id_Groups)
-     res.json({
-       status:200,
-       listdata
-     })
-   }
-   doing(id_Groups)
- })
- 
+authRouter.get('/GroupUsers:id', (req, res) => {
+  let id_Groups = req.params.id
+  async function doing(id_Groups) {
+    let listdata = await authController.getUserGroups(id_Groups)
+    res.json({
+      status: 200,
+      listdata
+    })
+  }
+  doing(id_Groups)
+})
+
+/**
+ * Get list bill for revenue
+ */
+
+authRouter.get('/bills:id_store', (req, res) => {
+  let {id_store} = req.params
+  async function doing(id_store) {
+    let bills = await authController.getListBillRe(id_store)
+    res.json({
+      status: 200,
+      bills
+    })
+  }
+  doing(id_store)
+})
+
 module.exports = authRouter
