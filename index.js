@@ -8,6 +8,7 @@ config.app.use(config.express.static('public')) // follow path default was Publi
 
 config.app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Methods', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
   next()
 })

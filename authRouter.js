@@ -70,6 +70,23 @@ authRouter.get('/user:id', (req, res) => {
   })
 })
 /**
+ * Remove account
+ */
+authRouter.delete('/user', (req, res) => {
+  console.log(req.body)
+  let {_id} = req.body
+  Users.findByIdAndDelete({_id}, (err, data) => {
+    if(err) res.json({
+      status: 500,
+      message: err
+    })
+    res.json({
+      status:200,
+      message: 'Remove complete user'
+    })
+  })
+})
+/**
  * Get list payment
  */
 authRouter.get('/payments', (req, res) => {
