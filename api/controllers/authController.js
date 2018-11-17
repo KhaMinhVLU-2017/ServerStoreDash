@@ -23,7 +23,7 @@ module.exports = {
     return user.filter(item => item.role!== null)
   },
   getListBillRe: async(id_store) => {
-    let bills = await Bills.find({store: id_store}).populate('billDetails')
+    let bills = await Bills.find({store: id_store}).populate('billDetails').populate({path: 'user', select: 'username _id'})
     return bills
   }
 }
