@@ -41,14 +41,15 @@ authRouter.post('/createPayment', (req, res) => {
 /**
  * Get invoice at day in current Month
  */
-authRouter.get('/invoicecr', (req, res) => {
+authRouter.get('/invoicecr:id_store', (req, res) => {
+  let id_store = req.params.id_store
   let date = new Date()
   let yearCr = date.getFullYear()
   let monthCr = date.getMonth() + 1
   // let dayCr = date.getDate()
-  async function doingGetinvoice() {
-    let listInvoice = await Bills.find({})
-    let fillmonth = listInvoice.map((item, index) => {
+  async function doingGetinvoice(id_store) {
+    let listInvoice = await Bills.find({store: id_store}).populate('billDetails')
+    let fillmonth = listInvoice.filter((item, index) => {
       let InYear = item.date.getFullYear()
       let InMonth = item.date.getMonth() + 1
       // let InDay = item.date.getDate()
@@ -58,7 +59,7 @@ authRouter.get('/invoicecr', (req, res) => {
     })
     res.json({ 'InVoiceMonth': fillmonth })
   }
-  doingGetinvoice()
+  doingGetinvoice(id_store)
 })
 
 /**
@@ -95,8 +96,9 @@ authRouter.delete('/user', (req, res) => {
 /**
  * Get list payment
  */
-authRouter.get('/payments', (req, res) => {
-  Payments.find({}, (err, data) => {
+authRouter.get('/payments:id_store', (req, res) => {
+  let id_store = req.params.id_store
+  Payments.find({store: id_store}, (err, data) => {
     if (err) res.json(err)
     res.json(data)
   })
