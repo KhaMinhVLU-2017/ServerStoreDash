@@ -206,5 +206,25 @@ authRouter.get('/bills:id_store', (req, res) => {
   }
   doing(id_store)
 })
+/**
+ * Verify Account
+ */
+authRouter.get('/verify:token', (req, res) => {
+  let token = req.params.token
+  jwt.verify(token, api.keyToken, function (err, decoded) {
+    if (err) res.json({
+      message: 'Token error',
+      status: 500
+    })
+    let emailCr = decoded.email
+    Users.findOneAndUpdate({ email: emailCr }, { status: 'active' }, (err) => {
+      if (err) res.json({
+        message: 'Token error',
+        status: 500
+      })
+      res.redirect(api.urlClient)
+    })
+  })
+})
 
 module.exports = authRouter
