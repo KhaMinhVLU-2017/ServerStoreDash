@@ -112,7 +112,7 @@ authRouter.get('/payments:id_store', (req, res) => {
 authRouter.delete('/payments', (req, res) => {
   // ID Store Save Avability
   let { _id, id_store } = req.body
-  Payments.findByIdAndDelete({_id}, (err, data) => {
+  Payments.findByIdAndDelete({ _id }, (err, data) => {
     if (err) res.json({
       status: 500,
       message: err
@@ -243,5 +243,15 @@ authRouter.get('/verify:token', (req, res) => {
     })
   })
 })
-
+/**
+ * Create Bill for Staff
+ */
+authRouter.post('/crBill', (req, res) => {
+  let { data, id_store, id_user } = req.body
+  authController.createBill(data, id_store, id_user)
+  .then(StatusBill => {
+    console.log(StatusBill)
+    res.json(StatusBill)
+  })
+})
 module.exports = authRouter
