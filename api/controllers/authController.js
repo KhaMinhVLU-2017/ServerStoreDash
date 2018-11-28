@@ -29,40 +29,61 @@ module.exports = {
   },
   createBill: async (data, id_store, id_user) => {
     let bill = new Bills()
-    let arrIdDetail = []
-    for (let [index, item] of data.entries()) {
-      // count can't incre [Complete]
-      let count = index + 1
-      BillDetails.create({
-        code: 'BD' + count,
-        name: item.idpd,
-        quantity: item.idqt,
-        price: item.idpc,
-        bill: bill._id
-      }, (err, data) => {
-        if (err) return err
-        count++
-        arrIdDetail.push(data._id)
-        return data
+    let target = false
+    async function listIdDetail () {
+      let arrIdDetail = []
+      for (let [index, item] of data.entries()) {
+        // count can't incre [Complete]
+        let count = index + 1
+        await BillDetails.create({
+          code: 'BD' + count,
+          name: item.idpd,
+          quantity: item.idqt,
+          price: item.idpc,
+          bill: bill._id
+        }, (err, data) => {
+          if (err) return err
+          count++
+          arrIdDetail.push(data._id)
+          return data
+        })
+      }
+      return arrIdDetail
+    }
+    function checkTarget(target) {
+      if(target) {
+        return {
+          status:200,
+          message: 'Save Complete'
+        }
+      }else {
+        return {
+          status:500,
+          message: 'Failed save bill'
+        }
+      }
+    }
+    async function saveBill(countCr, listDetail) {
+      let countTotal = countCr + 1
+      bill.billDetails = [...listDetail]
+      console.log(listDetail)
+      bill.code = 'B' + countTotal
+      bill.title = 'Hoa don ban le'
+      bill.date = new Date()
+      bill.store = id_store
+      bill.user = id_user
+      await bill.save(err => {
+        if(err) console.log(err)
+        target = true
       })
     }
-    let countCr = await Bills.count({}, function (err, count) {
-      return count
-    })
-    let countTotal = countCr + 1
-    bill.billDetails = [...arrIdDetail]
-    bill.code = 'B' + countTotal
-    bill.title = 'Hoa don ban le'
-    bill.date = new Date()
-    bill.store = id_store
-    bill.user = id_user
-    bill.save(err => {
-      if(err) console.log(err)
-    })
-    return {
-      status:200,
-      message: 'Complete save invoice'
-    }
+    /**
+     * Fix create Bill with async await not save multiple
+     */
+    let listDetail = await listIdDetail()
+    let countCr = await Bills.count({})
+    let save = await saveBill(countCr, listDetail)
+    return await checkTarget(target)
   }
 }
 // data 7 - 24
