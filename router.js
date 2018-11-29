@@ -81,7 +81,7 @@ router.get('/invoice/:id_user/:id_store', (req, res) => {
         return item
       }
     })
-    res.json({ 'InVoiceDaily': fillday })
+    res.json({status: 200 ,'InVoiceDaily': fillday })
   }
   doingGetinvoice(id_store, id_user)
 })
