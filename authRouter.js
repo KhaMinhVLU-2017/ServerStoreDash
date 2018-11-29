@@ -250,8 +250,8 @@ authRouter.post('/crBill', (req, res) => {
   let { data, id_store, id_user } = req.body
   authController.createBill(data, id_store, id_user)
   .then(StatusBill => {
-    console.log(StatusBill)
-    res.json(StatusBill)
+      console.log(StatusBill)
+      res.json(StatusBill)
   })
 })
 module.exports = authRouter
