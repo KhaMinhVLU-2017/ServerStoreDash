@@ -245,55 +245,6 @@ authRouter.get('/verify:token', (req, res) => {
     })
   })
 })
-/**
- * Create Bill for Staff
- */
-authRouter.post('/crBill',async (req, res) => {
-  let { data, id_store, id_user } = req.body
-  let _idBill = mongoose.Types.ObjectId()
-  function listIdDetail() {
-    let arrIdDetail = []
-    for (let [index, item] of data.entries()) {
-      let count = index + 1
-      let billDetail = new BillDetails()
-      billDetail.code = count
-      billDetail.name = item.idpd
-      billDetail.quantity = item.idqt
-      billDetail.price = item.idpc
-      billDetail.bill = _idBill
-      arrIdDetail.push(billDetail)
-    }
-    return arrIdDetail
-  }
-  function saveBill(countCr, listDetail) {
-    let countTotal = countCr + 1
-    BillDetails.insertMany(listDetail, (err, docs) => {
-      if (err) res.json({
-        status: 500,
-        message: 'Failed save billDetail'
-      })
-      let arr_Id = docs.map(item => item._id)
-      Bills.create({
-        _id: _idBill,
-        billDetails: [...arr_Id],
-        code: 'B' + countTotal,
-        title: 'Hóa đơn bán lẻ',
-        date: new Date(),
-        store: id_store,
-        user: id_user
-      }, (err) => {
-        if (err) res.json({
-          status: 500,
-          message: 'Failed save bill'
-        })
-        res.json({
-          status: 200,
-          message: 'Save Complete'
-        })
-      })
-    })
-  }
-  let countCr = await Bills.count({})
-  await saveBill(countCr, listIdDetail())
-})
+
+
 module.exports = authRouter
