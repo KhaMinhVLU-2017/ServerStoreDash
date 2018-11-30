@@ -251,15 +251,16 @@ authRouter.get('/verify:token', (req, res) => {
 /**
  * Renew Token for active account staff
  */
-authRouter.post('/renewtoken:id_user', (req, res) => {
-  let { id_user } = req.params
-  Users.findById(id_user, 'email username', (err, data) => {
+authRouter.post('/renewtoken', (req, res) => {
+  let { _id } = req.body
+  Users.findById(_id, 'email username', (err, data) => {
     if (err) {
       res.json({
-        message: 'Token\'s time-expired..!',
+        message: 'Not Found id User',
         status: 500
       })
     }
+    let {email, username} = data
     jwt.sign({ email, username }, api.keyToken, { expiresIn: '1h' }, (err, token) => {
       if (err) {
         res.json({
@@ -271,8 +272,8 @@ authRouter.post('/renewtoken:id_user', (req, res) => {
         let transporter = nodemailer.createTransport(myEmail)
         let subject = 'Hello ' + username + ' ✔'
         let url = api.local + '/api/verify' + token
-        let text ='<h3>That\'s new token. Because your old token was time-expired</h3>' +
-        '<br /> <p>You are check url verify account from Nhicosmetics: ' + url + '</p>'
+        let text = '<h3>That\'s new token. Because your old token was time-expired</h3>' +
+          '<br /> <p>You are check url verify account from Nhicosmetics: ' + url + '</p>'
         let mailOptions = {
           from: 'Store Nhicosmetics <nhicosmetics2019@gmail.com>', // sender address
           to: email, // list of receivers
@@ -284,7 +285,7 @@ authRouter.post('/renewtoken:id_user', (req, res) => {
           if (error) {
             res.json(error)
           }
-          console.log('Send email complete ' + email)
+          console.log('Send email complete ' + info)
           res.json({
             message: 'Send email complete',
             status: 200

@@ -19,8 +19,8 @@ const config = {
 
 const myEmail = {
   host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // true for 465, false for other ports
+  port: 465,
+  secure: true, // true for 465, false for other ports 587
   auth: {
     user: 'nhicosmetics2019@gmail.com', // generated ethereal user
     pass: 'Cankhondichchuyen2018' // generated ethereal password
