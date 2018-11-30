@@ -181,13 +181,13 @@ authRouter.post('/AccountCr', (req, res) => {
           }
           transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-              return console.log(error)
+              res.json(error)
             }
             console.log('Send email complete ' + email)
-          })
-          res.json({
-            message: 'complete',
-            status: 200
+            res.json({
+              message: 'Send email complete',
+              status: 200
+            })
           })
         })
       }
@@ -231,20 +231,67 @@ authRouter.get('/bills:id_store', (req, res) => {
 authRouter.get('/verify:token', (req, res) => {
   let token = req.params.token
   jwt.verify(token, api.keyToken, function (err, decoded) {
-    if (err) res.json({
-      message: 'Token error',
-      status: 500
-    })
-    let emailCr = decoded.email
-    Users.findOneAndUpdate({ email: emailCr }, { status: 'active' }, (err) => {
-      if (err) res.json({
-        message: 'Token error',
+    if (err) {
+      res.json({
+        message: 'Token\'s time-expired..!',
         status: 500
       })
-      res.redirect(api.urlClient)
+    } else {
+      let emailCr = decoded.email
+      Users.findOneAndUpdate({ email: emailCr }, { status: 'active' }, (err) => {
+        if (err) res.json({
+          message: 'Token error',
+          status: 500
+        })
+        res.redirect(api.urlClient)
+      })
+    }
+  })
+})
+/**
+ * Renew Token for active account staff
+ */
+authRouter.post('/renewtoken:id_user', (req, res) => {
+  let { id_user } = req.params
+  Users.findById(id_user, 'email username', (err, data) => {
+    if (err) {
+      res.json({
+        message: 'Token\'s time-expired..!',
+        status: 500
+      })
+    }
+    jwt.sign({ email, username }, api.keyToken, { expiresIn: '1h' }, (err, token) => {
+      if (err) {
+        res.json({
+          message: 'Token not compare',
+          status: 500
+        })
+      }
+      nodemailer.createTestAccount(() => {
+        let transporter = nodemailer.createTransport(myEmail)
+        let subject = 'Hello ' + username + ' ✔'
+        let url = api.local + '/api/verify' + token
+        let text ='<h3>That\'s new token. Because your old token was time-expired</h3>' +
+        '<br /> <p>You are check url verify account from Nhicosmetics: ' + url + '</p>'
+        let mailOptions = {
+          from: 'Store Nhicosmetics <nhicosmetics2019@gmail.com>', // sender address
+          to: email, // list of receivers
+          subject: subject, // Subject line
+          text: text, // plain text body
+          html: text // html body
+        }
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            res.json(error)
+          }
+          console.log('Send email complete ' + email)
+          res.json({
+            message: 'Send email complete',
+            status: 200
+          })
+        })
+      })
     })
   })
 })
-
-
 module.exports = authRouter
