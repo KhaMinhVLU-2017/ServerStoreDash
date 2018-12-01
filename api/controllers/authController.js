@@ -19,7 +19,7 @@ module.exports = {
   },
   getUserGroups: async (id_group) => {
     // Inner join table and get employee
-    let user = await Users.find({ groups: id_group }, '_id username email status').populate({ path: 'role', match: { code: 2 } })
+    let user = await Users.find({ groups: id_group }, '_id username email status').populate({ path: 'role', match: { code: 2 } }).populate({path: 'infoUser', select: 'phonenumber'})
     return user.filter(item => item.role !== null)
   },
   getListBillRe: async (id_store) => {
