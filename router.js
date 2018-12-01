@@ -1,11 +1,16 @@
 const express = require('express')
 const router = express.Router()
-var mongoose = require('mongoose')
+const mongoose = require('mongoose')
 const BillDetails = require('./api/models/billDetail')
 const Bills = require('./api/models/bill')
+const Users = require('./api/models/user')
 const bodyParser = require('body-parser')
 router.use(bodyParser.json()) // support json encoded bodies
-router.use(bodyParser.urlencoded({ extended: true })) 
+router.use(bodyParser.urlencoded({ extended: true }))
+const bcrypt = require('bcrypt')
+const saltRounds = 10
+const nodemailer = require('nodemailer')
+const { myEmail, api } = require('./config')
 
 
 router.get('/', (req, res) => {
@@ -14,7 +19,7 @@ router.get('/', (req, res) => {
 /**
  * Create Bill for Staff
  */
-router.post('/crBill',async (req, res) => {
+router.post('/crBill', async (req, res) => {
   let { data, id_store, id_user } = req.body
   let _idBill = mongoose.Types.ObjectId()
   function listIdDetail() {
@@ -66,7 +71,7 @@ router.post('/crBill',async (req, res) => {
  * Get Invoice daily of Staff
  */
 router.get('/invoice/:id_user/:id_store', (req, res) => {
-  let {id_user, id_store} = req.params
+  let { id_user, id_store } = req.params
   let date = new Date()
   let yearCr = date.getFullYear()
   let monthCr = date.getMonth() + 1
@@ -81,9 +86,93 @@ router.get('/invoice/:id_user/:id_store', (req, res) => {
         return item
       }
     })
-    res.json({status: 200 ,'InVoiceDaily': fillday })
+    res.json({ status: 200, 'InVoiceDaily': fillday })
   }
   doingGetinvoice(id_store, id_user)
 })
+/**
+ * Forget Password Staff
+ */
+router.post('/forgetpw', (req, res) => {
+  let { email, phone } = req.body
+  // Find email of staff forgetpass
+  Users.findOne({ email }).populate('infoUser', 'phonenumber').exec((err, data) => {
+    if (data === null) {
+      res.json({
+        status: 404,
+        message: 'Not found your\'s email or Phone Number'
+      })
+    } else
+    if (data.infoUser.phonenumber !== phone) {
+      res.json({
+        status: 404,
+        message: 'Not found your\'s email or Phone Number'
+      })
+    } else {
+      // random password new
+      let passNew = randoomLength()
+      // hash password
+      bcrypt.hash(passNew, saltRounds, (err, hash) => {
+        if (err) {
+          res.json({
+            status: 500,
+            message: 'Hash password is faile'
+          })
+        }
+        // save password
+        data.password = hash
+        data.save((err) => {
+          if (err) {
+            res.json({
+              status: 500,
+              message: 'Update password is faile'
+            })
+          } else {
+            // send email
+            nodemailer.createTestAccount(() => {
+              let transporter = nodemailer.createTransport(myEmail)
+              let subject = 'Hello ' + data.username + ' ✔'
+              let url = api.urlClient
+              let text = '<h3>You have requested a password change</h3>'
+                + '<p>Your\'s new password: <strong>' + passNew + '</strong> </p>'
+                + '<p>You can login with new password at the moment </p>'
+                + '<p> That\'s link: ' + url + '</p>'
+              let mailOptions = {
+                from: 'Store Nhicosmetics <nhicosmetics2019@gmail.com>', // sender address
+                to: email, // list of receivers
+                subject: subject, // Subject line
+                text: text, // plain text body
+                html: text // html body
+              }
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  res.json(error)
+                }
+                console.log('Send email complete ' + info)
+                res.json({
+                  message: 'Send email complete',
+                  status: 200
+                })
+              })
+            })
+          }
+        })
+      })
+    }
+  })
+})
+
+/**
+ * Randoom Length
+ */
+function randoomLength() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 20; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
 
 module.exports = router
