@@ -130,69 +130,95 @@ authRouter.delete('/payments', (req, res) => {
  */
 
 authRouter.post('/AccountCr', (req, res) => {
-  let { username, password, pwconfirm, email } = req.body
+  let { username, password, pwconfirm, email, phone } = req.body
   let groups = req.body.id_group
   let role = req.body.id_roles
-  if (username.length === 0 || email.length === 0) {
+  if(email.length === 0) {
     res.json({
       status: 500,
-      message: 'Please fill username and password'
+      message: 'Please input field email'
     })
   }
-  if (password !== pwconfirm) {
-    res.json({
-      status: 500,
-      message: 'Password with Pwconfirm not match'
-    })
-  }
-  if (username.length > 0 && email.length > 0 && password === pwconfirm) {
-    let token = jwt.sign({ email, username }, api.keyToken, { expiresIn: '1h' })
-    bcrypt.hash(password, saltRounds, async (err, hash) => {
-      if (err) res.json({
-        message: 'Hash error',
-        status: 500
+  Users.findOne({ email: email }, data => {
+    if (data) {
+      res.json({
+        status: 500,
+        message: 'Email is exist'
       })
-      let userOld = await Users.findOne({ email: email })
-      if (userOld) {
-        res.json({
-          message: 'Email is exist',
+    }
+    if (username.length === 0 || email.length === 0) {
+      res.json({
+        status: 500,
+        message: 'Please fill username and password'
+      })
+    }
+    if (password !== pwconfirm) {
+      res.json({
+        status: 500,
+        message: 'Password with Pwconfirm not match'
+      })
+    }
+    if (username.length > 0 && email.length > 0 && password === pwconfirm) {
+      let token = jwt.sign({ email, username }, api.keyToken, { expiresIn: '1h' })
+      bcrypt.hash(password, saltRounds, async (err, hash) => {
+        if (err) res.json({
+          message: 'Hash error',
           status: 500
         })
-      } else {
-        let user = new Users()
-        user.email = email
-        user.username = username
-        user.password = hash
-        user.groups = groups
-        user.role = role
-        user.status = 'inactive'
-        user.save()
-        nodemailer.createTestAccount(() => {
-          let transporter = nodemailer.createTransport(myEmail)
-          let subject = 'Hello ' + username + ' ✔'
-          let url = api.local + '/api/verify' + token
-          let text = '<p>You are check url verify account from Nhicosmetics: ' + url + '</p>'
-          let mailOptions = {
-            from: 'Store Nhicosmetics <nhicosmetics2019@gmail.com>', // sender address
-            to: email, // list of receivers
-            subject: subject, // Subject line
-            text: text, // plain text body
-            html: text // html body
-          }
-          transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-              res.json(error)
+        let userOld = await Users.findOne({ email: email })
+        if (userOld) {
+          res.json({
+            message: 'Email is exist',
+            status: 500
+          })
+        } else {
+          let id_infoUser = mongoose.Types.ObjectId()
+          let user = new Users()
+          user.email = email
+          user.username = username
+          user.password = hash
+          user.groups = groups
+          user.infoUser = id_infoUser
+          user.role = role
+          user.status = 'inactive'
+          user.save((err, data) => {
+            if (err) {
+              res.json({ status: 200, err })
             }
-            console.log('Send email complete ' + email)
-            res.json({
-              message: 'Send email complete',
-              status: 200
+            let { _id } = data
+            InfoUsers.create({ _id: id_infoUser, phonenumber: phone, user: _id }, err => {
+              if(err) {
+                res.json({ status: 200, err })
+              }
             })
           })
-        })
-      }
-    })
-  }
+          nodemailer.createTestAccount(() => {
+            let transporter = nodemailer.createTransport(myEmail)
+            let subject = 'Hello ' + username + ' ✔'
+            let url = api.local + '/api/verify' + token
+            let text = '<p>You are check url verify account from Nhicosmetics: ' + url + '</p>'
+            let mailOptions = {
+              from: 'Store Nhicosmetics <nhicosmetics2019@gmail.com>', // sender address
+              to: email, // list of receivers
+              subject: subject, // Subject line
+              text: text, // plain text body
+              html: text // html body
+            }
+            transporter.sendMail(mailOptions, (error, info) => {
+              if (error) {
+                res.json(error)
+              }
+              console.log('Send email complete ' + email)
+              res.json({
+                message: 'Send email complete',
+                status: 200
+              })
+            })
+          })
+        }
+      })
+    }
+  })
 })
 /**
  * Get user from Groups
@@ -260,7 +286,7 @@ authRouter.post('/renewtoken', (req, res) => {
         status: 500
       })
     }
-    let {email, username} = data
+    let { email, username } = data
     jwt.sign({ email, username }, api.keyToken, { expiresIn: '1h' }, (err, token) => {
       if (err) {
         res.json({
