@@ -165,7 +165,8 @@ router.post('/forgetpw', (req, res) => {
  * ChangePassword
  */
 router.post('/changepw', (req, res) => {
-  let { oldpass, newpass, cfnewpass } = req.body
+  let { oldpass, newpass, cfnewpass, id_user } = req.body
+  console.log(req.body)
   // TOdo write code
 })
 /**
@@ -198,7 +199,7 @@ router.post('/login', (req, res) => {
               }
               let { _id, username, email, infoUser } = user
               jwt.sign({ username, email, infoUser, _id }, api.keyToken, { expiresIn: '1h' }, (err, token) => {
-                res.json({ status: 200, token, username, email })
+                res.json({ status: 200, token, username, email, _id })
               })
             })
         }
