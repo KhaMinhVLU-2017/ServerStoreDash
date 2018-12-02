@@ -193,12 +193,11 @@ router.post('/login', (req, res) => {
         } else {
           bcrypt.compare(password, user.password)
             .then(check => {
-              console.log(check)
               if (!check) {
                 res.json({ status: 404, message: 'Email or password is wrong' })
               }
-              let { username, email, infoUser } = user
-              jwt.sign({ username, email, infoUser }, api.keyToken, { expiresIn: '1h' }, (err, token) => {
+              let { _id, username, email, infoUser } = user
+              jwt.sign({ username, email, infoUser, _id }, api.keyToken, { expiresIn: '1h' }, (err, token) => {
                 res.json({ status: 200, token, username, email })
               })
             })
