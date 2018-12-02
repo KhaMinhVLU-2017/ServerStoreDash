@@ -11,7 +11,7 @@ const bcrypt = require('bcrypt')
 const saltRounds = 10
 const nodemailer = require('nodemailer')
 const { myEmail, api } = require('./config')
-
+const jwt = require('jsonwebtoken')
 
 router.get('/', (req, res) => {
   res.send('Welcome to Server')
@@ -103,64 +103,111 @@ router.post('/forgetpw', (req, res) => {
         message: 'Not found your\'s email or Phone Number'
       })
     } else
-    if (data.infoUser.phonenumber !== phone) {
-      res.json({
-        status: 404,
-        message: 'Not found your\'s email or Phone Number'
-      })
-    } else {
-      // random password new
-      let passNew = randoomLength()
-      // hash password
-      bcrypt.hash(passNew, saltRounds, (err, hash) => {
-        if (err) {
-          res.json({
-            status: 500,
-            message: 'Hash password is faile'
-          })
-        }
-        // save password
-        data.password = hash
-        data.save((err) => {
+      if (data.infoUser.phonenumber !== phone) {
+        res.json({
+          status: 404,
+          message: 'Not found your\'s email or Phone Number'
+        })
+      } else {
+        // random password new
+        let passNew = randoomLength()
+        // hash password
+        bcrypt.hash(passNew, saltRounds, (err, hash) => {
           if (err) {
             res.json({
               status: 500,
-              message: 'Update password is faile'
-            })
-          } else {
-            // send email
-            nodemailer.createTestAccount(() => {
-              let transporter = nodemailer.createTransport(myEmail)
-              let subject = 'Hello ' + data.username + ' ✔'
-              let url = api.urlClient
-              let text = '<h3>You have requested a password change</h3>'
-                + '<p>Your\'s new password: <strong>' + passNew + '</strong> </p>'
-                + '<p>You can login with new password at the moment </p>'
-                + '<p> That\'s link: ' + url + '</p>'
-              let mailOptions = {
-                from: 'Store Nhicosmetics <nhicosmetics2019@gmail.com>', // sender address
-                to: email, // list of receivers
-                subject: subject, // Subject line
-                text: text, // plain text body
-                html: text // html body
-              }
-              transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                  res.json(error)
-                }
-                console.log('Send email complete ' + info)
-                res.json({
-                  message: 'Send email complete',
-                  status: 200
-                })
-              })
+              message: 'Hash password is faile'
             })
           }
+          // save password
+          data.password = hash
+          data.save((err) => {
+            if (err) {
+              res.json({
+                status: 500,
+                message: 'Update password is faile'
+              })
+            } else {
+              // send email
+              nodemailer.createTestAccount(() => {
+                let transporter = nodemailer.createTransport(myEmail)
+                let subject = 'Hello ' + data.username + ' ✔'
+                let url = api.urlClient
+                let text = '<h3>You have requested a password change</h3>'
+                  + '<p>Your\'s new password: <strong>' + passNew + '</strong> </p>'
+                  + '<p>You can login with new password at the moment </p>'
+                  + '<p> That\'s link: ' + url + '</p>'
+                let mailOptions = {
+                  from: 'Store Nhicosmetics <nhicosmetics2019@gmail.com>', // sender address
+                  to: email, // list of receivers
+                  subject: subject, // Subject line
+                  text: text, // plain text body
+                  html: text // html body
+                }
+                transporter.sendMail(mailOptions, (error, info) => {
+                  if (error) {
+                    res.json(error)
+                  }
+                  console.log('Send email complete ' + info)
+                  res.json({
+                    message: 'Send email complete',
+                    status: 200
+                  })
+                })
+              })
+            }
+          })
         })
+      }
+  })
+})
+/**
+ * ChangePassword
+ */
+router.post('/changepw', (req, res) => {
+  let { oldpass, newpass, cfnewpass } = req.body
+  // TOdo write code
+})
+/**
+ * Login
+ */
+router.post('/login', (req, res) => {
+  let { email, password } = req.body
+  Users.findOne({ email }, (err, user) => {
+    let opt = {
+      path: 'role',
+      select: 'name code'
+    }
+    if (!user) {
+      res.json({ status: 404, message: 'Account not exist' })
+    } else {
+      Users.populate(user, opt, (err, user) => {
+        if (err) {
+          res.json({ status: 404, message: 'Account not exist' })
+        }
+        if (!user) {
+          res.json({ status: 404, message: 'Email or password is wrong' })
+        }
+        if (user.role.code !== '2') {
+          res.json({ status: 404, message: 'Email or password is wrong' })
+        } else {
+          bcrypt.compare(password, user.password)
+            .then(check => {
+              console.log(check)
+              if (!check) {
+                res.json({ status: 404, message: 'Email or password is wrong' })
+              }
+              let { username, email, infoUser } = user
+              jwt.sign({ username, email, infoUser }, api.keyToken, { expiresIn: '1h' }, (err, token) => {
+                res.json({ status: 200, token, username, email })
+              })
+            })
+        }
       })
     }
   })
 })
+
 
 /**
  * Randoom Length
