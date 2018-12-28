@@ -168,6 +168,33 @@ router.post('/changepw', (req, res) => {
   let { oldpass, newpass, cfnewpass, id_user } = req.body
   console.log(req.body)
   // TOdo write code
+  Users.findById(id_user, (err, data) => {
+    if (!data) {
+      res.json({ status: 404, message: 'Not found' })
+    } else {
+      let { password } = data
+      bcrypt.compare(oldpass, password, function (err, check) {
+        if (check === false) {
+          res.json({ status: 404, message: 'Password is wrong' })
+        } else {
+          if (newpass !== cfnewpass) {
+            res.json({ status: 404, message: 'Password is wrong' })
+          } else {
+            bcrypt.hash(newpass, saltRounds, function (err, hashNew) {
+              data.password = hashNew
+              data.save(err => {
+                if (err) res.json({ status: 500, message: [err] })
+                res.json({
+                  status: 200,
+                  message: 'Change password complete...!'
+                })
+              })
+            })
+          }
+        }
+      })
+    }
+  })
 })
 /**
  * Login
