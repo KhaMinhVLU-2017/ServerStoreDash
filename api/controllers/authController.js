@@ -7,15 +7,8 @@ var BillDetails = require('../models/billDetail')
 
 module.exports = {
   account: async (id) => {
-    let user = await Users.findOne({ _id: id })
-    let infoUser = await InfoUsers.findOne({ _id: user.infoUser })
-    let group = await Groups.findOne({ _id: user.groups })
-    if (!user) return ('No user found')
-    if (!group) return user
-    user['groups'] = Object.create(group)
-    if (!infoUser) return user
-    user['infoUser'] = Object.create(infoUser)
-    return user
+    let userMeo = await Users.findOne({_id: id}).populate('infoUser').populate('groups')
+    return userMeo
   },
   getUserGroups: async (id_group) => {
     // Inner join table and get employee
@@ -23,7 +16,7 @@ module.exports = {
     return user.filter(item => item.role !== null)
   },
   getListBillRe: async (id_store) => {
-    let bills = await Bills.find({ store: id_store }).populate('billDetails').populate({ path: 'user', select: 'username _id' })
+    let bills = await Bills.find({ store: id_store }).sort([['date', -1]]).populate('billDetails').populate({ path: 'user', select: 'username _id' })
     return bills
   }
 }
