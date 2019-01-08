@@ -12,6 +12,8 @@ const saltRounds = 10
 const nodemailer = require('nodemailer')
 const { myEmail, api } = require('./config')
 const jwt = require('jsonwebtoken')
+const verifyToken = require('./api/controllers/verifytoken')
+
 
 router.use((req, res, next) => {
   console.log('Route Request to Middle API at ' + Date.now())
@@ -28,7 +30,7 @@ router.get('/', (req, res) => {
 /**
  * Create Bill for Staff
  */
-router.post('/crBill', async (req, res) => {
+router.post('/crBill',verifyToken, async (req, res) => {
   let { data, id_store, id_user } = req.body
   let _idBill = mongoose.Types.ObjectId()
   function listIdDetail() {
@@ -234,7 +236,7 @@ router.post('/login', (req, res) => {
                 res.json({ status: 404, message: 'Email or password is wrong' })
               }
               let { _id, username, email, infoUser } = user
-              jwt.sign({ username, email, infoUser, _id }, api.keyToken, { expiresIn: '1h' }, (err, token) => {
+              jwt.sign({ username, email, infoUser, _id }, api.keyToken, { expiresIn: '30m' }, (err, token) => {
                 res.json({ status: 200, token, username, email, _id })
               })
             })
